@@ -1,0 +1,27 @@
+# OS junk
+.DS_Store
+Thumbs.db
+
+# Editor / IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Logs
+logs/
+*.log
+
+# Environment / secrets
+.env
+.env.*
+!.env.example
+
+# Build / temp
+dist/
+build/
+out/
+tmp/
+.cache/
+
+node_modules/
