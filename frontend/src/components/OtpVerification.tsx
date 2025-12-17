@@ -26,7 +26,7 @@ function OTPVerification() {
 
     const verifyOtpMutation = useMutation({
     mutationFn: async (payload: { email: string; otp: string }) => {
-        console.log(payload);
+       
         const res = await fetch("http://localhost:5000/auth/verifyotp", {
         method: "POST",
         headers: {
@@ -45,7 +45,7 @@ function OTPVerification() {
         return data;
     },
     onSuccess: () => {
-        navigate("/login", { replace: true });
+        navigate("/dashboard", { replace: true });
     },
     onError: (err: any) => {
         setError(err.message);

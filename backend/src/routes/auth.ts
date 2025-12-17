@@ -2,23 +2,27 @@ import { Router,Request,Response } from "express";
 import { otpModel } from "../models/otpmodel";
 import crypto from "crypto";
 import { sendOtpMail } from "../services/otpmail";
-import { hashPassword } from "../services/hashing";
+import { hashPassword, verifyPassword } from "../services/hashing";
 import { userModel } from "../models/usermodel";
+import { createJwtToken, verifyToken } from "../services/jwttoken";
+import { JwtPayload } from "jsonwebtoken";
 
 const authRouter = Router();
 
 interface userData{
     email:string,
+    name:string,
     password:string
 }
 
 authRouter.post("/signup",async(req:Request,res:Response)=>{
-    const {email,password}:userData  = req.body;
+    const {email,name,password}:userData  = req.body;
     const otp:string = Math.floor(1000 + Math.random() * 9000).toString();
     const otphash = crypto.createHash("sha256").update(otp).digest("hex");
     const hashedPassword = await hashPassword(password);
     const temp = await otpModel.create({
         email,
+        name,
         otp:otphash,
         password:hashedPassword,
         expiresAt:new Date(Date.now() + (1.5 * 60 * 1000)),
@@ -30,23 +34,63 @@ authRouter.post("/signup",async(req:Request,res:Response)=>{
 });
 
 authRouter.post("/verifyotp",async(req:Request,res:Response)=>{
-    const {email,otp} = req.body;
-    console.log(email,otp);
+    const {email,otp} = req.body as {
+        email:string,
+        otp:string
+    };
+    if(!email || !otp)return res.status(401).json({success:false});
     const temp = await otpModel.findOne({email});
     if(!temp)return res.status(400).json({success:false});
     const savedOtpHash:string = temp?.otp;
     const receivedOtpHash = crypto.createHash("sha256").update(otp).digest("hex");
-    console.log(savedOtpHash);
-    console.log(receivedOtpHash);
-
     if(savedOtpHash !== receivedOtpHash)return res.status(401).json({success:false});
-    const user=await userModel.create({
-        email,
-        password:temp.password,
-    })
+    let user = await userModel.findOne({email});
+    if(!user){
+        user = await userModel.create({
+            email,
+            name:temp.name,
+            password:temp.password
+        });
+    }
+    console.log(user.name);
+    const cookieToken = createJwtToken({email,id:String(user._id),name:user.name});
+    res.cookie("jwt",cookieToken,{
+        httpOnly:true,
+        sameSite:"none",
+        secure:true,
+     });
+
     await temp.deleteOne();
-    res.locals.user = user;
     return res.status(200).json({success:true});
 });
+
+authRouter.post("/login",async(req:Request,res:Response)=>{
+    const {email,password} = req.body;
+    const user = await userModel.findOne({email});
+    const ifSame:boolean = await verifyPassword(password,String(user?.password));
+    if(!ifSame)return res.status(400).json({success:false});
+    const otp:string = Math.floor(1000 + Math.random() * 9000).toString();
+    const otphash = crypto.createHash("sha256").update(otp).digest("hex");
+    const temp = await otpModel.create({
+        email,
+        otp:otphash,
+        password:user?.password,
+        expiresAt:new Date(Date.now() + (1.5 * 60 * 1000)),
+    });
+
+    await sendOtpMail(email,otp);
+    return res.status(200).json({success:true});
+})
+
+authRouter.get("/verifyuser",async(req:Request,res:Response)=>{
+    const token  = req.cookies.jwt;
+    if(!token)return res.status(400);
+    const data = verifyToken(String(token));
+    if(!data)return res.status(400);
+    if(typeof data.userObj!=="object")return res.status(401);
+    const user = await userModel.findById(data.userObj?.id);
+    if(user)return res.status(200).json(data);
+    return res.status(401);
+})
 
 export default authRouter;

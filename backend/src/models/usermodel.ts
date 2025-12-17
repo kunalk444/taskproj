@@ -4,6 +4,11 @@ const userSchema = new mongoose.Schema({
     email:{
         type:String,
         required:true,
+        unique:true
+    },
+    name:{
+        type:String,
+        required:true,
     },
     password:{
         type:String,
@@ -12,4 +17,6 @@ const userSchema = new mongoose.Schema({
     
 });
 
-export const userModel = mongoose.model("users",userSchema);
+
+export type User = mongoose.InferSchemaType<typeof userSchema>;
+export const userModel = mongoose.model<User>("User", userSchema);

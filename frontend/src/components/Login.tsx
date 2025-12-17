@@ -24,13 +24,15 @@ function Login() {
       })
 
       const data = await res.json()
-      if (!res.ok) throw new Error(data.message || "Login failed")
-      return data
+      if (!res.ok) throw new Error("Login failed");
+      return data;
     },
-    onSuccess: () => {
-      emailRef.current!.value = ""
-      passRef.current!.value = ""
-      navigate("/dashboard", { replace: true })
+    onSuccess: (data,variables) => {
+      if(data.success){
+        navigate(`/verifyotp?email=${encodeURIComponent(variables.email)}`);
+      }else{
+        setErrorNotif("User doesn't Exist or Wrong Details Inserted!");
+      }
     },
     onError: (err: any) => {
       setErrorNotif(err.message)
@@ -38,6 +40,23 @@ function Login() {
   })
 
   const handleLogin = (): void => {
+    const email = String(emailRef.current?.value);
+    const password = String(passRef.current?.value);
+    if (!email || !password) {
+      setErrorNotif("Fill out all fields!")
+      emailRef.current!.value = "";
+      passRef.current!.value = "";
+      return;
+    }
+
+    if (password && password.length < 8) {
+      setErrorNotif("Password must contain atleast 8 characters!")
+      emailRef.current!.value = ""
+      passRef.current!.value = ""
+      return;
+    }
+
+    loginMutation.mutate({ email,password })
 
   }
 

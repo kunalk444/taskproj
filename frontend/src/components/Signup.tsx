@@ -3,8 +3,9 @@ import { useMutation, useQuery } from '@tanstack/react-query'
 import { useNavigate } from 'react-router-dom'
 
 function Signup() {
-  const emailRef = useRef<HTMLInputElement | null>(null)
-  const passRef = useRef<HTMLInputElement | null>(null)
+  const emailRef = useRef<HTMLInputElement | null>(null);
+  const passRef = useRef<HTMLInputElement | null>(null);
+  const nameRef = useRef<HTMLInputElement|null>(null);
   const [errorNotif, setErrorNotif] = useState<string | null>(null)
   const navigate = useNavigate()
   errorNotif && setTimeout(() => {
@@ -12,7 +13,7 @@ function Signup() {
   }, 1400)
 
   const signupMutation = useMutation({
-    mutationFn: async (payload: { email: string; password: string }) => {
+    mutationFn: async (payload: { email: string;name:string;password: string }) => {
       const res = await fetch("http://localhost:5000/auth/signup", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -26,35 +27,38 @@ function Signup() {
     },
     onSuccess: (data, variables) => {
       if (data.state === "in-process") {
-        emailRef.current!.value = ""
-        passRef.current!.value = ""
-        navigate(`/verifyotp?email=${encodeURIComponent(variables.email)}`)
+        emailRef.current!.value = "";
+        passRef.current!.value = "";
+        nameRef.current!.value = "";
+        navigate(`/verifyotp?email=${encodeURIComponent(variables.email)}`);
       }
     },
     onError: (error: any) => {
-      setErrorNotif(error.message)
+      setErrorNotif(error.message);
     },
   })
 
   const handleSignup = (): void => {
-    const email = String(emailRef.current?.value)
-    const password = String(passRef.current?.value)
+    const email = String(emailRef.current?.value);
+    const password = String(passRef.current?.value);
+      const name= String(nameRef.current?.value);
 
-    if (!email || !password) {
-      setErrorNotif("Fill out both fields!")
-      emailRef.current!.value = ""
-      passRef.current!.value = ""
-      return
-    }
+      if (!email || !password || !name) {
+        setErrorNotif("Fill out all fields!")
+        emailRef.current!.value = "";
+        passRef.current!.value = "";
+        nameRef.current!.value = "";
+        return;
+      }
 
-    if (password && password.length < 8) {
-      setErrorNotif("Password must contain atleast 8 characters!")
-      emailRef.current!.value = ""
-      passRef.current!.value = ""
-      return
-    }
+      if (password && password.length < 8) {
+        setErrorNotif("Password must contain atleast 8 characters!")
+        emailRef.current!.value = ""
+        passRef.current!.value = ""
+        return;
+      }
 
-    signupMutation.mutate({ email, password })
+      signupMutation.mutate({ email, name,password })
   }
 
   return (
@@ -88,7 +92,17 @@ function Signup() {
                 className="mt-2 w-full border-b border-slate-300 bg-transparent pb-2 text-[#0f172a] placeholder-slate-400 focus:border-[#14b8a6] focus:outline-none transition-colors"
               />
             </div>
-
+            <div>
+              <label className="block text-xs font-medium uppercase tracking-wide text-slate-500">
+                Name
+              </label>
+              <input
+                type="text"
+                ref={nameRef}
+                placeholder="enter your name"
+                className="mt-2 w-full border-b border-slate-300 bg-transparent pb-2 text-[#0f172a] placeholder-slate-400 focus:border-[#14b8a6] focus:outline-none transition-colors"
+              />
+            </div>
             <div>
               <label className="block text-xs font-medium uppercase tracking-wide text-slate-500">
                 Password
