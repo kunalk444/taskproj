@@ -86,6 +86,7 @@ authRouter.get("/verifyuser",async(req:Request,res:Response)=>{
     const token  = req.cookies.jwt;
     if(!token)return res.status(400);
     const data = verifyToken(String(token));
+    console.log(data);
     if(!data)return res.status(400);
     if(typeof data.userObj!=="object")return res.status(401);
     const user = await userModel.findById(data.userObj?.id);
