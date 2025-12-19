@@ -1,4 +1,3 @@
-import { useState } from "react";
 import { Link } from "react-router-dom";
 
 function Navbar(props:any) {
@@ -19,8 +18,9 @@ function Navbar(props:any) {
       >
         Tasque
       </Link>
-
-      <div className="flex items-center gap-4">
+      {
+        props.isLoggedIn ?
+            <div className="flex items-center gap-4">
         
         <button
           type="button"
@@ -51,7 +51,10 @@ function Navbar(props:any) {
           <div className="w-8 h-8 rounded-full bg-gradient-to-r from-slate-500 to-slate-400 animate-pulse" />
         </button>
 
-      </div>
+      </div>:
+          <Link to={"/github"} />
+      }
+      
     </nav>
   );
 }

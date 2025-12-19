@@ -2,7 +2,7 @@ import React, { useRef, useState, useEffect } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import { useMutation } from '@tanstack/react-query';
 
-function OTPVerification() {
+function OTPVerification(props:any) {
   const otpRef = useRef<HTMLInputElement | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [timeLeft, setTimeLeft] = useState(90); 
@@ -24,34 +24,33 @@ function OTPVerification() {
     return () => clearInterval(timer);
   }, [timeLeft]);
 
-    const verifyOtpMutation = useMutation({
+  const verifyOtpMutation = useMutation({
     mutationFn: async (payload: { email: string; otp: string }) => {
-       
-        const res = await fetch("http://localhost:5000/auth/verifyotp", {
+      const res = await fetch("http://localhost:5000/auth/verifyotp", {
         method: "POST",
         headers: {
-            "Content-Type": "application/json",
+          "Content-Type": "application/json",
         },
         credentials: "include",
         body: JSON.stringify(payload),
-        });
+      });
 
-        const data = await res.json();
+      const data = await res.json();
 
-        if (!res.ok) {
+      if (!res.ok) {
         throw new Error(data.message || "OTP verification failed");
-        }
+      }
 
-        return data;
+      return data;
     },
     onSuccess: () => {
-        navigate("/dashboard", { replace: true });
+      props.setLoggedIn();
+      navigate("/dashboard", { replace: true });
     },
     onError: (err: any) => {
-        setError(err.message);
+      setError(err.message);
     },
-    });
-
+  });
 
   const formatTime = (seconds: number) => {
     const mins = Math.floor(seconds / 60);
@@ -67,43 +66,62 @@ function OTPVerification() {
       return;
     }
     verifyOtpMutation.mutate({
-        email:email!,
-        otp
+      email: email!,
+      otp
     });
     otpRef.current!.value = "";
   };
 
-  const handleResendOtp = () => navigate("/signup");
+  const handleResendOtp = () => {
+    if(email)navigate(`/verifyotp?email=${encodeURIComponent(email)}`);
+    navigate("/");
+    
+  }
 
   return (
-    <div className="min-h-screen bg-[#1e293b] flex items-center justify-center px-6">
-      <div className="relative w-full max-w-md">
-        <div className="absolute -inset-0.5 rounded-2xl bg-gradient-to-r from-[#14b8a6] to-[#0d9488] opacity-30 blur" />
+    <div className="fixed inset-0 z-50 flex items-center justify-center px-4">
+      <div 
+        className="absolute inset-0 bg-black/70 backdrop-blur-md" 
+        onClick={() => navigate("/")}
+      />
 
-        <div className="relative rounded-2xl bg-white px-8 py-10 shadow-xl">
-          <h2 className="text-3xl font-semibold text-[#0f172a] tracking-tight">
-            Verify OTP
-          </h2>
-          <p className="mt-1 text-sm text-slate-500">
-            Code sent to{" "}
-            <span className="font-medium text-[#0f172a]">
-              {email && email.charAt(0) + "...@" + email.split("@")[1]}
-            </span>
-          </p>
+      <div className="relative w-full max-w-sm rounded-2xl bg-slate-800 shadow-2xl border border-slate-700 overflow-hidden">
+        <div className="absolute inset-0 rounded-2xl opacity-20 blur-xl bg-gradient-to-r from-teal-500 to-emerald-600 pointer-events-none" />
+
+        <div className="relative p-8">
+          <button
+            onClick={() => navigate("/")}
+            className="absolute top-4 right-4 text-gray-400 hover:text-gray-200 transition-colors text-2xl leading-none"
+            aria-label="Close"
+          >
+            ×
+          </button>
+
+          <div className="text-center mb-8">
+            <h2 className="text-3xl font-bold text-white tracking-tight">
+              Verify OTP
+            </h2>
+            <p className="mt-3 text-sm text-gray-400">
+              Code sent to{" "}
+              <span className="font-medium text-white">
+                {email && email.charAt(0) + "...@" + email.split("@")[1]}
+              </span>
+            </p>
+          </div>
 
           {!isExpired ? (
             <>
-              <div className="mt-6 flex items-center justify-between">
-                <span className="text-xs uppercase tracking-wide text-slate-500">
+              <div className="flex items-center justify-between mb-6">
+                <span className="text-xs uppercase tracking-wider text-gray-400">
                   Expires in
                 </span>
-                <span className="font-mono text-lg font-semibold text-[#14b8a6]">
+                <span className="font-mono text-2xl font-bold text-teal-400">
                   {formatTime(timeLeft)}
                 </span>
               </div>
 
               {error && (
-                <div className="mt-4 rounded-md bg-red-50 px-4 py-2 text-sm text-red-600">
+                <div className="mb-6 rounded-lg bg-red-900/40 border border-red-800/50 px-4 py-3 text-sm text-red-300">
                   {error}
                 </div>
               )}
@@ -114,31 +132,28 @@ function OTPVerification() {
                   type="text"
                   maxLength={4}
                   placeholder="••••"
-                  className="w-full border-b border-slate-300 bg-transparent pb-3 text-center text-4xl font-semibold tracking-[0.6em] text-[#0f172a] placeholder-slate-300 focus:border-[#14b8a6] focus:outline-none transition-colors"
+                  className="w-full px-4 py-4 text-center text-4xl font-bold tracking-widest bg-slate-700/60 border border-slate-600 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:border-teal-500 focus:ring-2 focus:ring-teal-500/30 transition-all"
                 />
               </div>
 
               <button
                 onClick={handleVerifyOTP}
-                className="group mt-10 flex w-full items-center justify-center gap-2 rounded-md bg-[#14b8a6] py-3 text-sm font-semibold text-white transition-all hover:bg-[#0d9488] hover:shadow-lg"
+                disabled={verifyOtpMutation.isPending}
+                className="w-full mt-8 py-3.5 rounded-xl bg-teal-600 text-white font-semibold text-lg hover:bg-teal-500 disabled:opacity-70 disabled:cursor-not-allowed transition-all shadow-lg shadow-teal-600/30"
               >
-                Verify
-                <span className="translate-x-0 transition-transform group-hover:translate-x-1">
-                  →
-                </span>
+                {verifyOtpMutation.isPending ? 'Verifying...' : 'Verify'}
               </button>
             </>
           ) : (
-            <div className="mt-10 text-center">
-              <p className="text-lg font-semibold text-red-600">
-                OTP expired
+            <div className="text-center mt-10">
+              <p className="text-xl font-semibold text-red-400">
+                OTP has expired
               </p>
               <button
                 onClick={handleResendOtp}
-                className="mt-6 inline-flex items-center gap-2 text-sm font-semibold text-[#14b8a6] hover:text-[#0d9488] transition-colors"
+                className="mt-6 text-sm font-medium text-teal-400 hover:text-teal-300 transition-colors"
               >
-                Go back to signup
-                <span className="text-base">↺</span>
+                Request a new code
               </button>
             </div>
           )}

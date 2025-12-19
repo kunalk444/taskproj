@@ -1,25 +1,89 @@
 import { useQuery } from '@tanstack/react-query'
-import React, { useState } from 'react'
-import { Link, Navigate } from 'react-router-dom';
+import Dashboard from './Dashboard'
+import Signup from './components/Signup'
+import Navbar from './Navbar'
+import { useState } from 'react'
+import Login from './components/Login'
+ import { useEffect } from 'react';
+import Createtask from './components/Createtask'
 
 
-function Home() {
-    const{data:user,isLoading,isError}=useQuery({
-        queryKey:["me"],
-        queryFn:async()=>{
-            const res = await fetch("http://localhost:5000/auth/verifyuser",{
-                credentials:'include'
-            })
-            if(!res.ok)throw new Error("not authenticated!");
-            console.log(user);
-            return  res.json();
-        },
-        retry:false
-    });
-    if (isLoading) return <h2>Loading...</h2>;
-    if (user) return <Navigate to="/dashboard" replace />;
-    if (isError) return <Navigate to="/signup" replace />;
-    return null;    
+function Home(props:any) {
+  const [showsignup, setshowsignup] = useState<boolean>(false);
+  const [showlogin,setshowlogin] = useState<boolean>(false);
+  const[closeSignupOpenLogin,setCloseSignupOpenLogin] =useState<boolean>(false);
+  const[showCreateTask,setShowCreateTask] = useState<boolean>(false);
+
+  const { data: user } = useQuery({
+    queryKey: ['me'],
+    queryFn: async () => {
+      const res = await fetch('http://localhost:5000/auth/verifyuser', {
+        method: 'GET',
+        credentials: 'include'
+      })
+      if (!res.ok) throw new Error('not authenticated!')
+      return res.json()
+    },
+    retry: false
+  })
+ 
+    useEffect(() => {
+        if (closeSignupOpenLogin) {
+            setshowsignup(false);
+            setshowlogin(true);
+        }
+        if(user  && user.success)props.setLoggedIn(true);
+    }, [closeSignupOpenLogin,user]);
+
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-slate-900 to-gray-900">
+      <Navbar isLoggedIn={props.isLoggedIn} startShow = {()=>setShowCreateTask(true)}/>
+      {props.isLoggedIn ? (
+        <Dashboard />
+      ) : (
+        <div className="flex justify-center px-6 pt-28">
+          <div className="w-full max-w-3xl rounded-3xl bg-slate-800/90 backdrop-blur-md 
+                          shadow-2xl shadow-black/60 border border-slate-700/50 p-14">
+            <h1 className="text-5xl font-extrabold text-white mb-6 tracking-tight">
+              Organize work. Focus better.
+            </h1>
+            <p className="text-xl text-gray-300 mb-12 max-w-xl leading-relaxed">
+              A modern task and team management platform built for speed,
+              clarity, and effortless collaboration.
+            </p>
+            <button
+              onClick={() => setshowsignup(true)}
+              className="px-12 py-4 rounded-2xl bg-teal-600 text-white text-xl font-semibold
+                         hover:bg-teal-500 transition-all duration-300 shadow-xl shadow-teal-600/30"
+            >
+              Get Started
+            </button>
+          </div>
+        </div>
+      )}
+      
+      {showsignup && (
+        <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50">
+          <div className="w-full max-w-md rounded-2xl bg-slate-800 shadow-2xl p-8 border border-slate-700">
+            <Signup stopShow={() => setshowsignup(false)} openlogin = {()=>setCloseSignupOpenLogin(true)} />
+          </div>
+        </div>
+      )}
+      {showlogin && (
+        <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50">
+          <div className="w-full max-w-md rounded-2xl bg-slate-800 shadow-2xl p-8 border border-slate-700">
+            <Login stopShow={() => {
+                    setshowlogin(false);
+                    setCloseSignupOpenLogin(false);
+                }
+            }/>
+          </div>
+        </div>
+      )}
+
+      {showCreateTask && <Createtask stopShow={()=>setShowCreateTask(false)} />}
+    </div>
+  )
 }
 
 export default Home

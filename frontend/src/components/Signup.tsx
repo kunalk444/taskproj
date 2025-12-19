@@ -1,19 +1,16 @@
 import React, { useRef, useState } from 'react'
-import { useMutation, useQuery } from '@tanstack/react-query'
+import { useMutation } from '@tanstack/react-query'
 import { useNavigate } from 'react-router-dom'
 
-function Signup() {
+function Signup(props: any) {
   const emailRef = useRef<HTMLInputElement | null>(null);
   const passRef = useRef<HTMLInputElement | null>(null);
-  const nameRef = useRef<HTMLInputElement|null>(null);
+  const nameRef = useRef<HTMLInputElement | null>(null);
   const [errorNotif, setErrorNotif] = useState<string | null>(null)
   const navigate = useNavigate()
-  errorNotif && setTimeout(() => {
-    setErrorNotif(null)
-  }, 1400)
 
   const signupMutation = useMutation({
-    mutationFn: async (payload: { email: string;name:string;password: string }) => {
+    mutationFn: async (payload: { email: string; name: string; password: string }) => {
       const res = await fetch("http://localhost:5000/auth/signup", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -41,89 +38,114 @@ function Signup() {
   const handleSignup = (): void => {
     const email = String(emailRef.current?.value);
     const password = String(passRef.current?.value);
-      const name= String(nameRef.current?.value);
+    const name = String(nameRef.current?.value);
 
-      if (!email || !password || !name) {
-        setErrorNotif("Fill out all fields!")
-        emailRef.current!.value = "";
-        passRef.current!.value = "";
-        nameRef.current!.value = "";
-        return;
-      }
+    if (!email || !password || !name) {
+      setErrorNotif("Fill out all fields!")
+      emailRef.current!.value = "";
+      passRef.current!.value = "";
+      nameRef.current!.value = "";
+      return;
+    }
 
-      if (password && password.length < 8) {
-        setErrorNotif("Password must contain atleast 8 characters!")
-        emailRef.current!.value = ""
-        passRef.current!.value = ""
-        return;
-      }
+    if (password && password.length < 8) {
+      setErrorNotif("Password must contain atleast 8 characters!")
+      emailRef.current!.value = ""
+      passRef.current!.value = ""
+      return;
+    }
 
-      signupMutation.mutate({ email, name,password })
+    signupMutation.mutate({ email, name, password })
   }
 
   return (
-    <div className="min-h-screen bg-[#1e293b] flex items-center justify-center px-6">
-      <div className="relative w-full max-w-md">
-        <div className="absolute -inset-0.5 rounded-2xl bg-gradient-to-r from-[#14b8a6] to-[#0d9488] opacity-30 blur" />
+    <div className="fixed inset-0 z-50 flex items-center justify-center px-4">
+      <div 
+        className="absolute inset-0 bg-black/70 backdrop-blur-md" 
+        onClick={() => props.stopShow()}
+      />
 
-        <div className="relative rounded-2xl bg-white px-8 py-10 shadow-xl">
-          <h2 className="text-3xl font-semibold text-[#0f172a] tracking-tight">
-            Create account
-          </h2>
-          <p className="mt-1 text-sm text-slate-500">
-            Get started in seconds
-          </p>
+      <div className="relative w-full max-w-sm rounded-2xl bg-slate-800 shadow-2xl border border-slate-700 overflow-hidden">
+        <div className="absolute inset-0 rounded-2xl opacity-20 blur-xl bg-gradient-to-r from-teal-500 to-emerald-600 pointer-events-none" />
+
+        <div className="relative p-8">
+          <button
+            onClick={() => props.stopShow()}
+            className="absolute top-4 right-4 text-gray-400 hover:text-gray-200 transition-colors text-2xl leading-none"
+            aria-label="Close modal"
+          >
+            ×
+          </button>
+
+          <div className="text-center mb-8">
+            <h2 className="text-3xl font-bold text-white tracking-tight">
+              Create account
+            </h2>
+            <p className="mt-2 text-sm text-gray-400">
+              Get started in seconds
+            </p>
+          </div>
 
           {errorNotif && (
-            <div className="mt-5 rounded-md bg-red-50 px-4 py-2 text-sm text-red-600">
+            <div className="mb-6 rounded-lg bg-red-900/40 border border-red-800/50 px-4 py-3 text-sm text-red-300">
               {errorNotif}
             </div>
           )}
 
-          <div className="mt-8 space-y-6">
+          <div className="space-y-5">
             <div>
-              <label className="block text-xs font-medium uppercase tracking-wide text-slate-500">
+              <label className="block text-xs font-medium uppercase tracking-wider text-gray-400 mb-1.5">
+                Name
+              </label>
+              <input
+                type="text"
+                ref={nameRef}
+                placeholder="John Doe"
+                className="w-full px-4 py-3 rounded-lg bg-slate-700/60 border border-slate-600 text-white placeholder-gray-500 focus:outline-none focus:border-teal-500 focus:ring-2 focus:ring-teal-500/30 transition-all"
+              />
+            </div>
+
+            <div>
+              <label className="block text-xs font-medium uppercase tracking-wider text-gray-400 mb-1.5">
                 Email
               </label>
               <input
                 type="text"
                 ref={emailRef}
                 placeholder="your@email.com"
-                className="mt-2 w-full border-b border-slate-300 bg-transparent pb-2 text-[#0f172a] placeholder-slate-400 focus:border-[#14b8a6] focus:outline-none transition-colors"
+                className="w-full px-4 py-3 rounded-lg bg-slate-700/60 border border-slate-600 text-white placeholder-gray-500 focus:outline-none focus:border-teal-500 focus:ring-2 focus:ring-teal-500/30 transition-all"
               />
             </div>
+
             <div>
-              <label className="block text-xs font-medium uppercase tracking-wide text-slate-500">
-                Name
-              </label>
-              <input
-                type="text"
-                ref={nameRef}
-                placeholder="enter your name"
-                className="mt-2 w-full border-b border-slate-300 bg-transparent pb-2 text-[#0f172a] placeholder-slate-400 focus:border-[#14b8a6] focus:outline-none transition-colors"
-              />
-            </div>
-            <div>
-              <label className="block text-xs font-medium uppercase tracking-wide text-slate-500">
+              <label className="block text-xs font-medium uppercase tracking-wider text-gray-400 mb-1.5">
                 Password
               </label>
               <input
                 type="password"
                 ref={passRef}
                 placeholder="••••••••"
-                className="mt-2 w-full border-b border-slate-300 bg-transparent pb-2 text-[#0f172a] placeholder-slate-400 focus:border-[#14b8a6] focus:outline-none transition-colors"
+                className="w-full px-4 py-3 rounded-lg bg-slate-700/60 border border-slate-600 text-white placeholder-gray-500 focus:outline-none focus:border-teal-500 focus:ring-2 focus:ring-teal-500/30 transition-all"
               />
             </div>
 
             <button
               onClick={handleSignup}
-              className="group mt-6 flex w-full items-center justify-center gap-2 rounded-md bg-[#14b8a6] py-3 text-sm font-semibold text-white transition-all hover:bg-[#0d9488] hover:shadow-lg"
+              disabled={signupMutation.isPending}
+              className="w-full mt-6 py-3.5 rounded-xl bg-teal-600 text-white font-semibold text-lg hover:bg-teal-500 disabled:opacity-70 disabled:cursor-not-allowed transition-all shadow-lg shadow-teal-600/30"
             >
-              Get Started
-              <span className="translate-x-0 transition-transform group-hover:translate-x-1">
-                →
-              </span>
+              {signupMutation.isPending ? 'Creating...' : 'Get Started'}
             </button>
+
+            <div className="text-center mt-6">
+              <span className="text-sm text-gray-400">Already have an account?</span>{' '}
+              <button
+                onClick={() => props.openlogin()}
+                className="text-sm font-medium text-teal-400 hover:text-teal-300 transition-colors"
+              >
+                Log in
+              </button>
+            </div>
           </div>
         </div>
       </div>
