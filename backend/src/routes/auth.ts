@@ -58,7 +58,7 @@ authRouter.post("/verifyotp",async(req:Request,res:Response)=>{
         httpOnly:true,
         sameSite:"none",
         secure:true,
-        maxAge:86400 * 2
+        maxAge:1000 * 60 * 60 * 24 * 2
      });
 
     await temp.deleteOne();

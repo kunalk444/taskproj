@@ -18,7 +18,6 @@ logs/
 !.env.example
 
 # Build / temp
-dist/
 build/
 out/
 tmp/
