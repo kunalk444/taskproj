@@ -4,6 +4,9 @@ import cors from "cors";
 import authRouter from "./routes/auth";
 import mongoose from "mongoose";
 import cookieParser from "cookie-parser";
+import { Request,Response,NextFunction } from "express";
+import { authmiddleware } from "./middleware";
+import taskRouter from "./routes/tasks";
 
 const port = Number(process.env.PORT);
 const mongourl = String(process.env.MONGO_URL);
@@ -28,7 +31,7 @@ app.use(cors({
 }))
 
 app.use("/auth",authRouter);
-
+app.use("/tasks",authmiddleware,taskRouter);
 app.post("/",(req,res)=>{
     const {email,password} = req.body;
     return res.json({email,password,from:"backend"})
