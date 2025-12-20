@@ -8,6 +8,7 @@ const taskSlice = createSlice({
     initialState:[],
     reducers:{
         saveTasks:(state,action)=>{
+            console.log(state);
             return action.payload;
         },
         delTasks:()=>{

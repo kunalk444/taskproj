@@ -1,4 +1,4 @@
-import React, { useRef, useState, useEffect } from 'react'
+import  { useRef, useState, useEffect } from 'react'
 import { useMutation } from '@tanstack/react-query'
 import { useNavigate } from 'react-router-dom'
 
@@ -16,7 +16,7 @@ function Login(props: any) {
 
   const loginMutation = useMutation({
     mutationFn: async (payload: { email: string; password: string }) => {
-      const res = await fetch("http://localhost:5000/auth/login", {
+      const res = await fetch("/auth/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),

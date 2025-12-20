@@ -27,6 +27,7 @@ const insideTaskSlice = createSlice({
     reducers:{
         saveInsideTasks:(state,action:PayloadAction<InsideTask>)=>{
             const { title, description, dueDate, priority, status, assignedBy , _id } = action.payload;
+            console.log(state);
             return { title, description, dueDate, priority, status, assignedBy,_id};
         },
         delInsideTasks:()=>{

@@ -9,7 +9,7 @@ function Logout(props: any) {
   const dispatch = useDispatch<AppDispatch>();
   const logoutMutation = useMutation({
       mutationFn:async()=>{
-        const res = await fetch("http://localhost:5000/auth/logout",{
+        const res = await fetch("/auth/logout",{
           method:'POST',
           credentials:'include'
         });

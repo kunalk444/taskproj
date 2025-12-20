@@ -21,8 +21,8 @@ function Dashboard() {
     queryFn: async () => {
       const endpoint =
         viewType === "assignedToMe"
-          ? "http://localhost:5000/tasks/metainfo"
-          : "http://localhost:5000/tasks/metainfoassignedbyme";
+          ? "/tasks/metainfo"
+          : "/tasks/metainfoassignedbyme";
 
       const res = await fetch(endpoint, { credentials: "include" });
       if (!res.ok) throw new Error("Failed to fetch tasks");

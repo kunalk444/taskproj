@@ -21,7 +21,7 @@ function Createtask({ stopShow,setNewTaskFlag }: CreateTaskProps) {
   const { register, handleSubmit } = useForm<CreateTaskForm>();
 
   const onSubmit = async (data: CreateTaskForm) => {
-    await fetch("http://localhost:5000/tasks/createtask", {
+    await fetch("/tasks/createtask", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       credentials: "include",

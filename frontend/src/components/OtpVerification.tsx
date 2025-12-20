@@ -3,10 +3,10 @@ import { useSearchParams, useNavigate } from 'react-router-dom';
 import { useMutation } from '@tanstack/react-query';
 import { useDispatch } from 'react-redux';
 import { saveData } from '../reduxfolder/userSlice';
-import type { RootState, AppDispatch } from "../reduxfolder/store";
+import type { AppDispatch } from "../reduxfolder/store";
 
 
-function OTPVerification(props:any) {
+function OTPVerification() {
   const otpRef = useRef<HTMLInputElement | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [timeLeft, setTimeLeft] = useState(90); 
@@ -31,7 +31,7 @@ function OTPVerification(props:any) {
 
   const verifyOtpMutation = useMutation({
     mutationFn: async (payload: { email: string; otp: string }) => {
-      const res = await fetch("http://localhost:5000/auth/verifyotp", {
+      const res = await fetch("/auth/verifyotp", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

@@ -31,7 +31,7 @@ function InsideTask(props: any) {
         queryKey: ["inside-task", id],
         queryFn: async () => {
             const res = await fetch(
-                `http://localhost:5000/tasks/getinsidetask?id=${id}`,
+                `/tasks/getinsidetask?id=${id}`,
                 { credentials: "include" }
             );
             if (!res.ok) throw new Error("Failed to fetch task");
@@ -46,7 +46,7 @@ function InsideTask(props: any) {
             status: string;
         }) => {
             const res = await fetch(
-                "http://localhost:5000/tasks/changepriorityorstatus",
+                "/tasks/changepriorityorstatus",
                 {
                     method: "PATCH",
                     headers: {

@@ -25,10 +25,10 @@ function Home() {
   const [closeSignupOpenLogin, setCloseSignupOpenLogin] = useState<boolean>(false);
   const [showCreateTask, setShowCreateTask] = useState<boolean>(false);
   const [newTaskFlag, setNewTaskFlag] = useState<string | null>(null);
-  const { data: user1,isError} = useQuery({
+  const { data: user1} = useQuery({
     queryKey: ['me',],
     queryFn: async () => {
-      const res = await fetch('http://localhost:5000/auth/verifyuser', {
+      const res = await fetch('/auth/verifyuser', {
         method: 'GET',
         credentials: 'include'
       })
