@@ -6,15 +6,23 @@ import { useState } from 'react'
 import Login from './components/Login'
  import { useEffect } from 'react';
 import Createtask from './components/Createtask'
+import Logout from './components/Logout'
+import { useDispatch, useSelector } from 'react-redux'
+import { saveData } from './reduxfolder/userSlice'
+import type { RootState, AppDispatch } from "./reduxfolder/store";
+interface User{email:string,id:string|null,name:string,isLoggedIn:boolean}
 
-
-function Home(props:any) {
+function Home() {
+  const user:User = useSelector((state:RootState)=>state.user);
+  console.log(user);
+  const dispatch = useDispatch<AppDispatch>();
   const [showsignup, setshowsignup] = useState<boolean>(false);
   const [showlogin,setshowlogin] = useState<boolean>(false);
+  const[showlogout,setshowlogout] = useState<boolean>(false);
   const[closeSignupOpenLogin,setCloseSignupOpenLogin] =useState<boolean>(false);
   const[showCreateTask,setShowCreateTask] = useState<boolean>(false);
-
-  const { data: user } = useQuery({
+  const [newTaskFlag,setNewTaskFlag] = useState<string|null>(null);
+  const { data: user1 } = useQuery({
     queryKey: ['me'],
     queryFn: async () => {
       const res = await fetch('http://localhost:5000/auth/verifyuser', {
@@ -32,13 +40,36 @@ function Home(props:any) {
             setshowsignup(false);
             setshowlogin(true);
         }
-        if(user  && user.success)props.setLoggedIn(true);
-    }, [closeSignupOpenLogin,user]);
+        if(user1  && user1.success){
+            dispatch(saveData(user1.userObj)); 
+            console.log(user1.userObj);
+        }
+        if(newTaskFlag){
+          setTimeout(()=>{
+            setNewTaskFlag(null);
+          },1300);
+        }
+    }, [closeSignupOpenLogin,user,newTaskFlag]);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 to-gray-900">
-      <Navbar isLoggedIn={props.isLoggedIn} startShow = {()=>setShowCreateTask(true)}/>
-      {props.isLoggedIn ? (
+      <Navbar startShow = {()=>setShowCreateTask(true)} showLogoutModal={(()=>setshowlogout(true))}/>
+        {newTaskFlag && (
+        <div
+        className="
+          fixed top-6 right-6 z-50
+          rounded-lg bg-emerald-500/95
+          px-5 py-3
+          text-sm font-semibold text-white
+          shadow-lg
+          animate-toast-in
+        "
+      >
+    {newTaskFlag}
+  </div>
+)}
+
+      {user.isLoggedIn ? (
         <Dashboard />
       ) : (
         <div className="flex justify-center px-6 pt-28">
@@ -81,7 +112,8 @@ function Home(props:any) {
         </div>
       )}
 
-      {showCreateTask && <Createtask stopShow={()=>setShowCreateTask(false)} />}
+      {showCreateTask && <Createtask stopShow={()=>setShowCreateTask(false)} setNewTaskFlag = {()=>setNewTaskFlag("New Task Created!")}/>}
+      {showlogout && <Logout stopShow={()=>setshowlogout(false)}/>}
     </div>
   )
 }

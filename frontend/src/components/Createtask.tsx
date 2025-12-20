@@ -14,19 +14,20 @@ interface CreateTaskForm {
 
 interface CreateTaskProps {
   stopShow: () => void;
+  setNewTaskFlag :()=>void
 }
 
-function Createtask({ stopShow }: CreateTaskProps) {
+function Createtask({ stopShow,setNewTaskFlag }: CreateTaskProps) {
   const { register, handleSubmit } = useForm<CreateTaskForm>();
 
   const onSubmit = async (data: CreateTaskForm) => {
-    await fetch("http://localhost:5000/tasks", {
+    await fetch("http://localhost:5000/tasks/createtask", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       credentials: "include",
       body: JSON.stringify(data),
     });
-
+    setNewTaskFlag();
     stopShow();
   };
 

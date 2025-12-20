@@ -1,6 +1,10 @@
-import React, { useRef, useState, useEffect } from 'react';
+import { useRef, useState, useEffect } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import { useMutation } from '@tanstack/react-query';
+import { useDispatch } from 'react-redux';
+import { saveData } from '../reduxfolder/userSlice';
+import type { RootState, AppDispatch } from "../reduxfolder/store";
+
 
 function OTPVerification(props:any) {
   const otpRef = useRef<HTMLInputElement | null>(null);
@@ -9,8 +13,9 @@ function OTPVerification(props:any) {
   const [isExpired, setIsExpired] = useState(false);
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
+  const dispatch = useDispatch<AppDispatch>();
   const email: string | null = searchParams.get("email");
-
+  
   useEffect(() => {
     if (timeLeft <= 0) {
       setIsExpired(true);
@@ -43,9 +48,9 @@ function OTPVerification(props:any) {
 
       return data;
     },
-    onSuccess: () => {
-      props.setLoggedIn();
-      navigate("/dashboard", { replace: true });
+    onSuccess: (data) => {
+      dispatch(saveData({name:data.name,email:data.email,id:data.id,isLoggedIn:true}))
+      navigate("/", { replace: true });
     },
     onError: (err: any) => {
       setError(err.message);
