@@ -7,7 +7,8 @@ interface InsideTask{
     dueDate:""|Date,
     priority:""|"Low"|"Medium"|"High"|"Urgent",
     status:""|"To-Do"|"In-Progress"|"Review"|"Completed",
-    assignedBy : string
+    assignedBy : string,
+    _id:string
 }
 
 const initialState1:InsideTask = {
@@ -16,7 +17,8 @@ const initialState1:InsideTask = {
     dueDate:"",
     priority:"",
     status:"",
-    assignedBy:""
+    assignedBy:"",
+    _id:""
 }
 
 const insideTaskSlice = createSlice({
@@ -24,7 +26,8 @@ const insideTaskSlice = createSlice({
     initialState:initialState1,
     reducers:{
         saveInsideTasks:(state,action:PayloadAction<InsideTask>)=>{
-            return action.payload;
+            const { title, description, dueDate, priority, status, assignedBy , _id } = action.payload;
+            return { title, description, dueDate, priority, status, assignedBy,_id};
         },
         delInsideTasks:()=>{
             return initialState1;
