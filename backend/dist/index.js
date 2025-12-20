@@ -40,7 +40,10 @@ async function startServer() {
         const rootDir = process.cwd();
         app.use(express_1.default.static(path_1.default.join(rootDir, "../frontend/dist")));
         app.use((req, res) => {
-            res.sendFile(path_1.default.join(process.cwd(), "../frontend/dist/index.html"));
+            if (req.path.startsWith("/assets")) {
+                return res.status(404).end();
+            }
+            res.sendFile(path_1.default.join(rootDir, "../frontend/dist/index.html"));
         });
         (0, socket_1.initSocket)(server);
         server.listen(PORT, () => {

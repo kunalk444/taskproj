@@ -44,15 +44,20 @@ async function startServer() {
 
     const rootDir = process.cwd();
 
-    app.use(
-    express.static(path.join(rootDir, "../frontend/dist"))
-    );
+app.use(
+  express.static(path.join(rootDir, "../frontend/dist"))
+);
 
-    app.use((req, res) => {
-        res.sendFile(
-            path.join(process.cwd(), "../frontend/dist/index.html")
-        );
-    });
+app.use((req, res) => {
+  if (req.path.startsWith("/assets")) {
+    return res.status(404).end();
+  }
+
+  res.sendFile(
+    path.join(rootDir, "../frontend/dist/index.html")
+  );
+});
+
 
 
 
