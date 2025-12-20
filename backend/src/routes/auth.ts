@@ -52,13 +52,13 @@ authRouter.post("/verifyotp",async(req:Request,res:Response)=>{
             password:temp.password
         });
     }
-    console.log(user.name);
+   
     const cookieToken = createJwtToken({email,id:String(user._id),name:user.name});
     res.cookie("jwt",cookieToken,{
         httpOnly:true,
         sameSite:"none",
         secure:true,
-        
+        maxAge:86400 * 2
      });
 
     await temp.deleteOne();
@@ -87,7 +87,6 @@ authRouter.get("/verifyuser",async(req:Request,res:Response)=>{
     const token  = req.cookies.jwt;
     if(!token)return res.status(400);
     const data = verifyToken(String(token));
-    console.log(data);
     if(!data)return res.status(400);
     if(typeof data.userObj!=="object")return res.status(401);
     const user = await userModel.findById(data.userObj?.id);

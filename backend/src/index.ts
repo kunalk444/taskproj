@@ -7,6 +7,9 @@ import cookieParser from "cookie-parser";
 import { Request,Response,NextFunction } from "express";
 import { authmiddleware } from "./middleware";
 import taskRouter from "./routes/tasks";
+import http from "http";
+import { initSocket } from "./services/socket";
+
 
 const port = Number(process.env.PORT);
 const mongourl = String(process.env.MONGO_URL);
@@ -22,6 +25,15 @@ dbconnect(mongourl).then(()=>{
 })
 
 const app = express();
+
+const server = http.createServer(app);
+
+initSocket(server);
+
+server.listen(process.env.PORT || 5000, () => {
+  console.log("Server running");
+});
+
 app.use(express.urlencoded({extended:true}));
 app.use(express.json());
 app.use(cookieParser());
@@ -35,7 +47,4 @@ app.use("/tasks",authmiddleware,taskRouter);
 app.post("/",(req,res)=>{
     const {email,password} = req.body;
     return res.json({email,password,from:"backend"})
-})
-app.listen(port,()=>{
-    console.log(`server running on port:${port}`);
 })
