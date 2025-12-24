@@ -24,7 +24,7 @@ const verifyToken = (token) => {
         const userObj = jsonwebtoken_1.default.verify(token, secret);
         if (userObj)
             return { success: true, userObj };
-        return { succes: false };
+        return { success: false };
     }
     catch (err) {
         console.log("error:", err);

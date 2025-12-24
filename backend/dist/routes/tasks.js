@@ -24,7 +24,8 @@ taskRouter.post("/createtask", async (req, res) => {
 });
 taskRouter.get("/metainfo", async (req, res) => {
     const id = req.user.userObj.id;
-    const metadata = await (0, tasks_1.metataskinfo)(id);
+    const email = req.user.userObj.email;
+    const metadata = await (0, tasks_1.metataskinfo)(id, email);
     return res.status(200).json({ metadata });
 });
 taskRouter.get("/metainfoassignedbyme", async (req, res) => {
@@ -61,5 +62,24 @@ taskRouter.patch("/changepriorityorstatus", async (req, res) => {
         });
     }
     return res.status(200).json({ "success": true, task: data });
+});
+taskRouter.post("/notifications", async (req, res) => {
+    const { id } = req.body;
+    const ans = await (0, tasks_1.displayNotifs)(id);
+    return res.status(200).json({ success: true, arr: ans });
+});
+taskRouter.post("/deletenotifs", async (req, res) => {
+    const { id } = req.body;
+    const ans = await (0, tasks_1.deleteNotifs)(id);
+    if (ans.success)
+        return res.status(200).json({ success: true });
+    return res.status(400).json({ success: false });
+});
+taskRouter.post("/deletetask", async (req, res) => {
+    const { taskId } = req.body;
+    const ans = await (0, tasks_1.handledelete)(taskId);
+    if (ans.success)
+        return res.status(200).json({ success: true });
+    return res.status(400).json({ success: false });
 });
 exports.default = taskRouter;
