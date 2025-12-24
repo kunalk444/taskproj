@@ -1,13 +1,16 @@
 import  { useRef, useState, useEffect } from 'react'
 import { useMutation } from '@tanstack/react-query'
 import { useNavigate } from 'react-router-dom'
+import { useDispatch } from 'react-redux';
+import type { AppDispatch } from '../reduxfolder/store';
+import { saveData } from '../reduxfolder/userSlice';
 
 function Login(props: any) {
-  const emailRef = useRef<HTMLInputElement | null>(null)
-  const passRef = useRef<HTMLInputElement | null>(null)
-  const [errorNotif, setErrorNotif] = useState<string | null>(null)
-  const navigate = useNavigate()
-
+  const emailRef = useRef<HTMLInputElement | null>(null);
+  const passRef = useRef<HTMLInputElement | null>(null);
+  const [errorNotif, setErrorNotif] = useState<string | null>(null);
+  const navigate = useNavigate();
+  const dispatch = useDispatch<AppDispatch>();
   useEffect(() => {
     if (!errorNotif) return
     const t = setTimeout(() => setErrorNotif(null), 1600)
@@ -29,7 +32,9 @@ function Login(props: any) {
     },
     onSuccess: (data, variables) => {
       if (data.success) {
-        navigate(`/verifyotp?email=${encodeURIComponent(variables.email)}`);
+        dispatch(saveData({name:data.name,email:data.email,id:data.id,isLoggedIn:true}));
+        props.stopShow();
+        navigate("/");
       } else {
         setErrorNotif("User doesn't Exist or Wrong Details Inserted!");
       }
@@ -48,8 +53,14 @@ function Login(props: any) {
       passRef.current!.value = "";
       return;
     }
-
-    if (password && password.length < 8) {
+    const emailRegex:RegExp = /^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$/;
+    if(!emailRegex.test(email)){
+      setErrorNotif("Invalid Email-id")
+      emailRef.current!.value = ""
+      passRef.current!.value = ""
+      return;
+    }
+    if (password && password.length < 8){
       setErrorNotif("Password must contain atleast 8 characters!")
       emailRef.current!.value = ""
       passRef.current!.value = ""

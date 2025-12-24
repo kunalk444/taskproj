@@ -10,6 +10,7 @@ import authRouter from "./routes/auth";
 import taskRouter from "./routes/tasks";
 import { authmiddleware } from "./middleware";
 import { initSocket } from "./services/socket";
+import { ensureSystemUserExists } from "./seeds/systemUser";
 
 const app = express();
 const server = http.createServer(app);
@@ -19,8 +20,9 @@ const MONGO_URL = process.env.MONGO_URL!;
 
 async function startServer() {
   try {
-    await mongoose.connect(MONGO_URL);
+    await mongoose.connect((process.env.NODE_ENV==="production")?MONGO_URL:"mongodb://127.0.0.1:27017/taskproj");
     console.log("MongoDB connected via Mongoose");
+    await ensureSystemUserExists();
 
     app.use(express.urlencoded({ extended: true }));
     app.use(express.json());
@@ -44,30 +46,29 @@ async function startServer() {
 
     const rootDir = process.cwd();
 
-app.use(
-  express.static(path.join(rootDir, "../frontend/dist"))
-);
+  if(process.env.NODE_ENV==="production"){
+      app.use(
+      express.static(path.join(rootDir, "../frontend/dist"))
+    );
 
-app.use((req, res) => {
-  if (req.path.startsWith("/assets")) {
-    return res.status(404).end();
+    app.use((req, res) => {
+      if (req.path.startsWith("/assets")) {
+        return res.status(404).end();
+      }
+
+      res.sendFile(
+        path.join(rootDir, "../frontend/dist/index.html")
+      );
+    });
   }
 
-  res.sendFile(
-    path.join(rootDir, "../frontend/dist/index.html")
-  );
-});
+  initSocket(server);
 
-
-
-
-    initSocket(server);
-
-    server.listen(PORT, () => {
+  server.listen(PORT, () => {
       console.log(`Server running on port ${PORT}`);
     });
 
-  } catch (err) {
+  }catch (err) {
     console.error("Startup failed:", err);
     process.exit(1);
   }

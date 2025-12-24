@@ -3,13 +3,14 @@ import userSlice from "./userSlice";
 import taskSlice from "./taskSlice";
 import insideTaskSlice from "./insideTask";
 import {retrieveFromLocal, saveInLocal} from "./refreshhandling";
-
+import tempUserSlice from "./tempUser";
 
 const store = configureStore({
     reducer:{
         user:userSlice,
         tasks:taskSlice,
-        insidetask:insideTaskSlice
+        insidetask:insideTaskSlice,
+        tempuser:tempUserSlice
     },
     preloadedState: retrieveFromLocal()
 });
@@ -24,6 +25,8 @@ store.subscribe(() => {
         insidetask:store.getState().insidetask,
     });
 })
+
+// store.dispatch(action);
 
 
 export default store;

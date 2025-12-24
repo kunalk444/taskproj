@@ -3,6 +3,7 @@ import TaskModel from "../models/taskModel"
 import { Task } from "../models/taskModel";
 import { userModel } from "../models/usermodel";
 import { assign } from "nodemailer/lib/shared";
+import { NotifModel } from "../models/notifications";
 
 export const saveTask = async(taskInfo:Task)=>{
     const user = await userModel.findOne({email:taskInfo.assignedToEmail});
@@ -10,16 +11,21 @@ export const saveTask = async(taskInfo:Task)=>{
         taskInfo.assignedTo = user._id;
     }
     const task = await TaskModel.create(taskInfo);
+    if(taskInfo.assignedTo){
+        const notif = await NotifModel.create({receiverId:taskInfo.assignedTo,message:`A new task was created:${task.title}`});
+    }
+    const notif2 = await NotifModel.create({receiverId:taskInfo.assignedBy,message:`A new task was created:${task.title}`});
     if(task)return {success:true,assignedTo:user?._id||null,id:task._id};
     return {success:false};
 } 
 
-export const metataskinfo = async(id:string) =>{
-    const tasks = await TaskModel.find(
-        {
-            assignedTo:new mongoose.Types.ObjectId(id)
-        }
-    ).populate("assignedBy","name").lean();
+export const metataskinfo = async(id:string,email:string) =>{
+    const tasks = await TaskModel.find({
+        $or:[
+            {assignedTo:new mongoose.Types.ObjectId(id)},
+            {assignedToEmail:email}
+        ]
+    }).populate("assignedBy","name").lean();
     if(!tasks)return [];
     const assignedByNames = tasks.map((element)=>((element.assignedBy as any)?.name));
     let cnt = 0;
@@ -69,5 +75,37 @@ export const changeprioritystatus = async(id:string,priority:string,status:strin
         },
         { new: true, runValidators: true }
     );
-    return data;
+    if(data && data.assignedBy && data.assignedTo){
+        const notif = await NotifModel.create({
+            message:`Changes were made in task-progression of ${data.title}`,
+            receiverId:data.assignedBy,
+        });
+
+        const notif2 = await NotifModel.create({
+            message:`Changes were made in task-progression of ${data.title}`,
+            receiverId:data.assignedTo,
+        });
+
+        return data;
+    }
+    return null;
+}
+
+export const displayNotifs = async(id:string)=>{
+    const notifs = await NotifModel.find({receiverId:id});
+    console.log(notifs);
+    return notifs;
+}
+
+export const deleteNotifs = async(id:string)=>{
+    const ifdel = await NotifModel.findByIdAndDelete(id);
+    if(ifdel)return {success:true};
+    return {success:false};
+}
+
+export const handledelete=async(id:string)=>{
+    const delTask = await TaskModel.findByIdAndDelete(id);
+    if(!delTask)return {success:false};
+    return {success:true};
+
 }

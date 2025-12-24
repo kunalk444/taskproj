@@ -1,9 +1,10 @@
 import { Router } from "express";
 import { Request,Response } from "express";
-import {changeprioritystatus, getinsideTaskInfo, metadatabyme, metataskinfo, saveTask} from "../controllers/tasks" 
+import {changeprioritystatus, deleteNotifs, displayNotifs, getinsideTaskInfo, handledelete, metadatabyme, metataskinfo, saveTask} from "../controllers/tasks" 
 import { userModel } from "../models/usermodel";
 import TaskModel from "../models/taskModel";
 import { getIO } from "../services/socket";
+
 const taskRouter = Router();
 
 taskRouter.post("/createtask",async(req:Request & { user?: any },res:Response)=>{
@@ -26,7 +27,8 @@ taskRouter.post("/createtask",async(req:Request & { user?: any },res:Response)=>
 
 taskRouter.get("/metainfo",async(req:Request & { user?: any },res:Response)=>{
     const id = req.user.userObj.id;
-    const metadata = await metataskinfo(id);
+    const email = req.user.userObj.email;
+    const metadata = await metataskinfo(id,email);
     return res.status(200).json({metadata}); 
 })
 
@@ -71,5 +73,25 @@ taskRouter.patch("/changepriorityorstatus",async(req:Request & { user?: any },re
     return res.status(200).json({"success":true,task:data});
 
 });
+
+taskRouter.post("/notifications",async(req:Request,res:Response)=>{
+    const {id} = req.body;
+    const ans = await displayNotifs(id);
+    return res.status(200).json({success:true,arr:ans})
+})
+
+taskRouter.post("/deletenotifs",async(req:Request,res:Response)=>{
+    const {id} = req.body;
+    const ans = await deleteNotifs(id);
+    if(ans.success)return res.status(200).json({success:true})
+    return res.status(400).json({success:false});
+})
+
+taskRouter.post("/deletetask",async(req:Request,res:Response)=>{
+    const {taskId} = req.body;
+    const ans = await handledelete(taskId);
+    if(ans.success)return res.status(200).json({success:true})
+    return res.status(400).json({success:false});
+})
 
 export default taskRouter;

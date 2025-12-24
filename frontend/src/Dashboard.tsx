@@ -9,6 +9,7 @@ import InsideTask from "./components/InsideTask";
 function Dashboard() {
   const tasks = useSelector((state: RootState) => state.tasks);
   const dispatch = useDispatch<AppDispatch>();
+  const user = useSelector((state: RootState) => state.user);
 
   const [viewType, setViewType] = useState<"assignedToMe" | "assignedByMe">(
     "assignedToMe"
@@ -28,6 +29,7 @@ function Dashboard() {
       if (!res.ok) throw new Error("Failed to fetch tasks");
       return res.json();
     },
+    enabled: user.isLoggedIn
   });
 
   useEffect(() => {
@@ -47,11 +49,33 @@ function Dashboard() {
   if (isError) {
     return <div className="p-8 text-red-500">Failed to load tasks,Try Logging out and Signing in again!</div>;
   }
+  const handleDelete = async (taskId: number | string) => {
+    try {
+      const res = await fetch("/tasks/deletetask", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        credentials: "include",
+        body: JSON.stringify({ taskId }),
+      });
+
+      if (!res.ok) throw new Error("Delete failed");
+      const filteredTasks = tasks.filter(
+        (task: any) => (task.id || task._id) !== taskId
+      );
+      dispatch(saveTasks(filteredTasks));
+
+    } catch (err) {
+      console.error("Failed to delete task", err);
+    }
+  };
+
 
   return (
     <div className="p-8">
       <div className="mb-8 flex flex-wrap items-center justify-between gap-4 rounded-xl bg-slate-900 border border-slate-800 px-6 py-4 shadow-md">
-        <div className="flex items-center gap-3">
+        <div className="grid grid-cols-[1fr_auto_auto] items-start gap-3">
           <span className="text-xs uppercase tracking-wide text-slate-400">
             View
           </span>
@@ -87,14 +111,29 @@ function Dashboard() {
             key={idx}
             className="group relative rounded-xl bg-slate-900 border border-slate-800 p-6 shadow-lg transition hover:border-indigo-500/50 hover:shadow-xl"
           >
-            <div className="flex items-start justify-between gap-3">
+
+            <div className="grid grid-cols-[1fr_auto_auto] items-start gap-3">
               <h3 className="text-lg font-semibold text-white leading-snug">
                 {task.title}
               </h3>
-              <span className="shrink-0 rounded-full bg-indigo-500/10 px-3 py-1 text-xs font-medium text-indigo-400">
+
+              <span className="shrink-0 rounded-full bg-indigo-500/10 px-3 py-1 
+                   text-xs font-medium text-indigo-400">
                 {task.priority}
               </span>
+
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleDelete(task.id || task._id);
+                }}
+                className="rounded-full p-1.5 text-slate-400 
+               hover:text-red-500 hover:bg-red-500/10"
+              >
+                ✕
+              </button>
             </div>
+
 
             <div className="mt-4 space-y-1 text-sm text-slate-400">
               {viewType === "assignedToMe" ? (
@@ -122,7 +161,7 @@ function Dashboard() {
             </div>
 
             <button
-              onClick={() => setInsideTaskId(task.id)}
+              onClick={() => setInsideTaskId(task.id || task._id)}
               className="mt-5 w-full rounded-md border border-slate-700 py-2 text-sm font-medium text-slate-300 transition hover:border-indigo-500 hover:text-white hover:bg-indigo-500/10"
             >
               View Task

@@ -1,12 +1,17 @@
-import { useMutation } from "@tanstack/react-query"
+import {  useMutation, useQueryClient } from "@tanstack/react-query"
 import { useDispatch } from "react-redux";
 import type {AppDispatch } from "../reduxfolder/store";
 import { delData} from "../reduxfolder/userSlice";
 import { delTasks } from "../reduxfolder/taskSlice";
 import { delInsideTasks } from "../reduxfolder/insideTask";
+import { useNavigate } from "react-router-dom";
+import { socket } from "./socket";
 
 function Logout(props: any) {
+  const queryClient = useQueryClient();
+  if(!props.show)return null;
   const dispatch = useDispatch<AppDispatch>();
+  const navigate = useNavigate();
   const logoutMutation = useMutation({
       mutationFn:async()=>{
         const res = await fetch("/auth/logout",{
@@ -18,11 +23,14 @@ function Logout(props: any) {
         }
         const data = await res.json();
         if(data.success){
+            props.stopShow();
             dispatch(delData());
             dispatch(delTasks());
             dispatch(delInsideTasks());
             localStorage.removeItem("persistedData");
-            props.stopShow();
+            queryClient.clear();
+            socket.disconnect();
+            window.location.replace("/");
         }
       }
   })

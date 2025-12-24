@@ -8,9 +8,12 @@ import { useEffect,useRef } from 'react';
 import Createtask from './components/Createtask'
 import Logout from './components/Logout'
 import { useDispatch, useSelector } from 'react-redux'
-import { saveData } from './reduxfolder/userSlice'
+import { delData, saveData } from './reduxfolder/userSlice'
 import type { RootState, AppDispatch } from "./reduxfolder/store";
 import { socket } from "./components/socket";
+import PreLogin from './components/PreLogin'
+import GoogleUserPassword from './components/GoogleUserPassword'
+import Notifications from './components/Notifications'
 
 interface User { email: string, id: string | null, name: string, isLoggedIn: boolean }
 
@@ -25,26 +28,41 @@ function Home() {
   const [closeSignupOpenLogin, setCloseSignupOpenLogin] = useState<boolean>(false);
   const [showCreateTask, setShowCreateTask] = useState<boolean>(false);
   const [newTaskFlag, setNewTaskFlag] = useState<string | null>(null);
-  const { data: user1} = useQuery({
-    queryKey: ['me',],
+  const [googlePassword,openGooglePassword] = useState<boolean>(false);
+  const [notifs,showNotifs] = useState<boolean>(false);
+
+  const { data: user1,isError} = useQuery({
+    queryKey: ['me'],
     queryFn: async () => {
       const res = await fetch('/auth/verifyuser', {
         method: 'GET',
         credentials: 'include'
       })
-      if (!res.ok) throw new Error('not authenticated!')
+      if (!res.ok){
+        dispatch(delData());
+        throw new Error("something went wrong!");
+      } 
       return res.json()
     },
     retry: false,
+    refetchOnWindowFocus: false,
+    refetchOnMount: false,
+    refetchOnReconnect: false,
+    enabled:user.isLoggedIn
   })
+  useEffect(() => {
+  if (!user.isLoggedIn) {
+    setshowlogout(false);
+    setshowlogin(false);
+    setshowsignup(false);
+    setShowCreateTask(false);
+  }
+  }, [user.isLoggedIn]);
 
   useEffect(() => {
     if (closeSignupOpenLogin) {
       setshowsignup(false);
       setshowlogin(true);
-    }
-    if (user1 && user1.success) {
-      dispatch(saveData(user1.userObj));
     }
     if (newTaskFlag) {
       setTimeout(() => {
@@ -53,17 +71,27 @@ function Home() {
     }
   }, [closeSignupOpenLogin, user, newTaskFlag]);
 
-
-  useEffect(() => {
-    if (user.isLoggedIn && user.id) {
-      socket.connect();
-      socket.emit("join", user.id);
+  useEffect(()=>{
+    if(user1 && user1.success){
+      dispatch(saveData(user1.userObj));
     }
+  },[user1]);
 
-    return () => {
+  useEffect(()=>{
+    if(isError){
       socket.disconnect();
-    };
-  }, [user.isLoggedIn, user.id]);
+      dispatch(delData());
+    }
+  },[isError]);
+
+ useEffect(() => {
+  if (!user.isLoggedIn || !user.id) return;
+
+  socket.connect();
+  socket.emit("join", user.id);
+
+}, [user.isLoggedIn, user.id]);
+
 
   useEffect(() => {
     socket.on("task-assigned", (payload) => {
@@ -86,10 +114,13 @@ function Home() {
     };
   }, []);
 
-
 return (
   <div className="min-h-screen bg-gradient-to-br from-slate-900 to-gray-900">
-    <Navbar startShow={() => setShowCreateTask(true)} showLogoutModal={(() => setshowlogout(true))} />
+    <Navbar 
+    startShow={() => setShowCreateTask(true)} 
+    showLogoutModal={(() => setshowlogout(true))} 
+    showNotifs={()=>showNotifs(true)}
+    />
     {newTaskFlag && (
       <div
         className="
@@ -120,34 +151,19 @@ return (
     )}
 
 
-    {user.isLoggedIn ? (
+    {user && user.isLoggedIn ? (
       <Dashboard />
     ) : (
-      <div className="flex justify-center px-6 pt-28">
-        <div className="w-full max-w-3xl rounded-3xl bg-slate-800/90 backdrop-blur-md 
-                          shadow-2xl shadow-black/60 border border-slate-700/50 p-14">
-          <h1 className="text-5xl font-extrabold text-white mb-6 tracking-tight">
-            Organize work. Focus better.
-          </h1>
-          <p className="text-xl text-gray-300 mb-12 max-w-xl leading-relaxed">
-            A modern task and team management platform built for speed,
-            clarity, and effortless collaboration.
-          </p>
-          <button
-            onClick={() => setshowsignup(true)}
-            className="px-12 py-4 rounded-2xl bg-teal-600 text-white text-xl font-semibold
-                         hover:bg-teal-500 transition-all duration-300 shadow-xl shadow-teal-600/30"
-          >
-            Get Started
-          </button>
-        </div>
-      </div>
+        <PreLogin setshowsignup={()=>setshowsignup(true)}/>
     )}
 
     {showsignup && (
       <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50">
         <div className="w-full max-w-md rounded-2xl bg-slate-800 shadow-2xl p-8 border border-slate-700">
-          <Signup stopShow={() => setshowsignup(false)} openlogin={() => setCloseSignupOpenLogin(true)} />
+          <Signup stopShow={() => setshowsignup(false)} 
+                  openlogin={() => setCloseSignupOpenLogin(true)}
+                  openGooglePassword = {()=>openGooglePassword(true)}
+          />
         </div>
       </div>
     )}
@@ -162,9 +178,19 @@ return (
         </div>
       </div>
     )}
+    {
+      googlePassword && (
+          <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50">
+          <div className="w-full max-w-md rounded-2xl bg-slate-800 shadow-2xl p-8 border border-slate-700">
+          <GoogleUserPassword stopShow={()=>openGooglePassword(false)}/>
+          </div>
+          </div>
+        )
+    }
 
     {showCreateTask && <Createtask stopShow={() => setShowCreateTask(false)} setNewTaskFlag={() => setNewTaskFlag("New Task Created!")} />}
-    {showlogout && <Logout stopShow={() => setshowlogout(false)} />}
+    {showlogout && <Logout show = {showlogout} stopShow={() => setshowlogout(false)} />}
+    {notifs && <Notifications show={notifs} stopShow={()=>showNotifs(false)}/>}
   </div>
 )
 }
