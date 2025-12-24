@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom'
 import { GoogleLogin, type CredentialResponse } from '@react-oauth/google';
 import { useDispatch } from 'react-redux';
 import type { AppDispatch } from '../reduxfolder/store';
-import { saveData, type UserState } from '../reduxfolder/userSlice';
+import { saveData} from '../reduxfolder/userSlice';
 import { saveTempData } from '../reduxfolder/tempUser';
 
 

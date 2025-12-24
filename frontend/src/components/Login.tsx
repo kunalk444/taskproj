@@ -30,7 +30,7 @@ function Login(props: any) {
       if (!res.ok) throw new Error("Login failed");
       return data;
     },
-    onSuccess: (data, variables) => {
+    onSuccess: (data) => {
       if (data.success) {
         dispatch(saveData({name:data.name,email:data.email,id:data.id,isLoggedIn:true}));
         props.stopShow();
