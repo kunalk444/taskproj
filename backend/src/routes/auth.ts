@@ -31,10 +31,10 @@ authRouter.post("/googleuser", async (req: Request, res: Response) => {
             const cookieToken = createJwtToken({ email:user.email, id: String(user._id), name: user.name });
             res.cookie("jwt", cookieToken, {
                 httpOnly: true,
-                sameSite: "lax",
-                secure: false,
+                secure: true,          
+                sameSite: "lax",       
                 maxAge: 1000 * 60 * 60 * 24 * 2
-            });
+        });
             return res.status(200).json({ success: true, alreadyAUser:true,name: user.name, email: user.email,id:user._id });
         }
         if (data.email_verified) return res.status(200).json({ success: true, name: data.name, email: data.email });
@@ -55,8 +55,8 @@ authRouter.post("/googleuserfinal", async (req: Request, res: Response) => {
             const cookieToken = createJwtToken({ email, id: String(user._id), name: user.name });
             res.cookie("jwt", cookieToken, {
                 httpOnly: true,
-                sameSite: "lax",
-                secure: false,
+                secure: true,          
+                sameSite: "lax",       
                 maxAge: 1000 * 60 * 60 * 24 * 2
             });
             return res.status(200).json({ success: true, name: user.name, email: user.email, id: user._id });
@@ -69,10 +69,10 @@ authRouter.post("/googleuserfinal", async (req: Request, res: Response) => {
         });
         const cookieToken = createJwtToken({ email, id: String(user._id), name: user.name });
         res.cookie("jwt", cookieToken, {
-            httpOnly: true,
-            sameSite: "lax",
-            secure: false,
-            maxAge: 1000 * 60 * 60 * 24 * 2
+                httpOnly: true,
+                secure: true,          
+                sameSite: "lax",       
+                maxAge: 1000 * 60 * 60 * 24 * 2
         });
 
         return res.status(200).json({ success: true, name: user.name, email: user.email, id: user._id });
@@ -96,10 +96,10 @@ authRouter.post("/signup", async (req: Request, res: Response) => {
         if(!user)return res.status(400).json({success:false});
         const cookieToken = createJwtToken({ email:user.email, id: String(user._id), name: user.name });
         res.cookie("jwt", cookieToken, {
-            httpOnly: true,
-            sameSite: "lax",
-            secure: false,
-            maxAge: 1000 * 60 * 60 * 24 * 2
+                httpOnly: true,
+                secure: true,          
+                sameSite: "lax",       
+                maxAge: 1000 * 60 * 60 * 24 * 2
         });
 
         return res.status(200).json({ success: true, name: user.name, email: user.email, id: user._id });
@@ -119,10 +119,10 @@ authRouter.post("/login", async (req: Request, res: Response) => {
         if (!ifSame || !user) return res.status(400).json({ success: false });
         const cookieToken = createJwtToken({ email, id: String(user._id), name: user.name });
         res.cookie("jwt", cookieToken, {
-            httpOnly: true,
-            sameSite: "lax",
-            secure: false,
-            maxAge: 1000 * 60 * 60 * 24 * 2
+                httpOnly: true,
+                secure: true,          
+                sameSite: "lax",       
+                maxAge: 1000 * 60 * 60 * 24 * 2
         });
         return res.status(200).json({ success: true, name: user?.name, id: user._id, email: user.email });
     } catch (err) {
@@ -134,7 +134,7 @@ authRouter.post("/logout",(req: Request, res: Response) => {
     res.clearCookie("jwt",{
         httpOnly: true,
         sameSite: "lax",
-        secure: false,
+        secure: true,
     });
     return res.status(200).json({success:true});
 })

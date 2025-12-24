@@ -39,6 +39,10 @@ async function startServer() {
             const { email, password } = req.body;
             res.json({ email, password, from: "backend" });
         });
+        app.use((err, req, res, next) => {
+            console.error(err);
+            res.status(500).json({ message: "Internal server error" });
+        });
         const rootDir = process.cwd();
         if (process.env.NODE_ENV === "production") {
             app.use(express_1.default.static(path_1.default.join(rootDir, "../frontend/dist")));
